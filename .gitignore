@@ -13,7 +13,8 @@
 !.idea/icon*.png
 *.iml
 /target/**
-
+*/target/**
+*/target/*
 # Common credential files
 **/credentials.json
 **/client_secrets.json
@@ -179,4 +180,4 @@ dmypy.json
 # Cython debug symbols
 cython_debug/# Default ignored files
 /shelf/
-/workspace.xml
+/.idea/workspace.xml

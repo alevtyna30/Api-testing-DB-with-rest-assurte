@@ -7,7 +7,6 @@ import static io.restassured.RestAssured.given;
 public class ApiTestsChallengeRequest {
 
     @Test
-
     public void createProduct(){
         String endpoint = "http://localhost:8888/api_testing/product/create.php";
         String body = "{\"name\": \"Sweatband\", \"description\": \"95% recycled, light and comfortable\", \"price\": 5, \"category_id\":3}";

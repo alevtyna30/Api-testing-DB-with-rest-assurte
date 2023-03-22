@@ -1,7 +1,6 @@
 package training;
 
 import org.junit.jupiter.api.Test;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -24,10 +23,5 @@ public class ApiTestChallengeResponse {
                 body("price", equalTo(10.00)).
                 body("category_id", equalTo(4)).
                 body("category_name", equalTo("Supplements"));
-
-
-
     }
-
-
 }
