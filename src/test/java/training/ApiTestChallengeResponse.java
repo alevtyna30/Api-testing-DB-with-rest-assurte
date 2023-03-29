@@ -1,27 +1,40 @@
 package training;
 
+import io.restassured.http.ContentType;
+import models.ProductDTO;
+import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ApiTestChallengeResponse {
 
+    public final static String GET_ONE_PRODUCT = "http://localhost:8888/api_testing/product/read_one.php";
+    ProductDTO product = ProductDTO.builder()
+            .id(18)
+            .name("Multi-Vitamin (90 capsules)")
+            .description("A daily dose of our Multi-Vitamins fulfills a day’s nutritional needs for over 12 vitamins and minerals.")
+            .price(10.00)
+            .categoryId(4)
+            .categoryName("Supplements")
+            .build();
+
     @Test
-    public void getMultiVitamins(){
-        String endpoint ="http://localhost:8888/api_testing/product/read_one.php";
-        given().
-                queryParam("id", 18).
+    public void getMultiVitamins() {
+        ProductDTO actual = given().
+                contentType(ContentType.JSON)
+                .queryParam("id", 18).
                 when().
-                get(endpoint).
+                get(GET_ONE_PRODUCT).
                 then().
                 assertThat().
-                statusCode(200).
+                statusCode(HttpStatus.SC_OK).
                 header("Content-Type", equalTo("application/json")).
-                body("id", equalTo(18)).
-                body("name", equalTo("Multi-Vitamin (90 capsules)")).
-                body("description", equalTo("A daily dose of our Multi-Vitamins fulfills a day’s nutritional needs for over 12 vitamins and minerals.")).
-                body("price", equalTo(10.00)).
-                body("category_id", equalTo(4)).
-                body("category_name", equalTo("Supplements"));
+                extract().as(ProductDTO.class);
+
+        assertEquals(product, actual);
+
     }
 }

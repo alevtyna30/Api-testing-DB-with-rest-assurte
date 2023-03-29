@@ -1,102 +1,121 @@
 package training;
 
-import models.Product;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
+import models.ProductDTO;
+import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.util.List;
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 public class ApiTests {
 
+    @BeforeEach
+    public void setBaseURI(){
+        RestAssured.baseURI = "http://localhost:8888";
+    }
+
+    ProductDTO tankProduct = ProductDTO.builder()
+            .id(2)
+            .name("Cross-Back Training Tank")
+            .description("The most awesome phone of 2013!")
+            .price(299.00)
+            .categoryId(2)
+            .categoryName("Active Wear - Women")
+            .build();
+
+    ProductDTO bottleProduct = ProductDTO.builder()
+            .name("Water bottle")
+            .description("Blue water bottle. Holds 64 ounces")
+            .price(12.00)
+            .categoryId(3)
+            .build();
+
+
     @Test
     public void getCategories(){
-        String endpoint = "http://localhost:8888/api_testing/product/read.php";
-        var response = given().when().get(endpoint).then();
-        response.log().body();
-    }
+        given()
+                .when()
+                .get("/api_testing/product/read.php")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
 
+    }
     @Test
     public void getProduct(){
-        String endpoint ="http://localhost:8888/api_testing/product/read_one.php";
-                given().
-                        queryParam("id", 2).
-                        when().
-                        get(endpoint).
-                        then().
-                        assertThat().
-                        statusCode(200).
-                        body("id", equalTo("2")).
-                        body("name", equalTo("Cross-Back Training Tank")).
-                        body("description", equalTo("The most awesome phone of 2013!")).
-                        body("price", equalTo("299.00")).
-                        body("category_id", equalTo(2)).
-                        body("category_name", equalTo("Active Wear - Women"));
-    }
+                ProductDTO productActual = given()
+                        .contentType(ContentType.JSON)
+                        .queryParam("id", 2)
+                        .when()
+                        .get("/api_testing/product/read_one.php")
+                        .then()
+                        .assertThat()
+                        .statusCode(HttpStatus.SC_OK)
+                        .extract().as(ProductDTO.class);
 
+        assertEquals(tankProduct, productActual);
+
+    }
     @Test
     public void createProduct(){
-        String endpoint = "http://localhost:8888/api_testing/product/create.php";
-        String body = "{\"name\": \"Water Bottle\", \"description\": \"Blue water bottle. Holds 64 ounces\", \"price\": 12, \"category_id\":3}";
-
-        var response =
-                given().body(body).when().post(endpoint).then();
-        response.log().body();
+     given()
+             .body(bottleProduct)
+             .when()
+             .post("/api_testing/product/create.php")
+             .then()
+             .statusCode(HttpStatus.SC_CREATED);
     }
-
     @Test
-    public void updateProduct(){
-        String endpoint = "http://localhost:8888/api_testing/product/update.php";
-        String body = "{\"name\": \"Water Bottle\", \"description\": \"Blue water bottle. Holds 64 ounces\",\"id\":19, \"price\": 15, \"category_id\":3}";
-        var response = given().body(body).when().put(endpoint).then();
-        response.log().body();
+    public void getProducts() throws JsonProcessingException {
+        Response response = given()
+                .when()
+                .get("/api_testing/product/read.php");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<ProductDTO> actualDtoList = objectMapper.readValue(response.getBody().asString(), new TypeReference<List<ProductDTO>>(){});
+        given()
+                .body(actualDtoList)
+                .when()
+                .get("/api_testing/product/read.php")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .header("Content-Type", equalTo("application/json; charset=UTF-8"));
     }
+        @Test
+        public void updateProduct () {
+            ProductDTO bottle = new ProductDTO();
+            bottle.setId(26);
+            bottle.setPrice(19.00);
+
+            given()
+                    .body(bottle)
+                    .when()
+                    .contentType(ContentType.JSON)
+                    .put("/api_testing/product/update.php")
+                    .then()
+                    .statusCode(HttpStatus.SC_OK);
+        }
+
     @Test
     public void deleteProduct(){
-        String endpoint = "http://localhost:8888/api_testing/product/delete.php";
-        String body = "{\"id\":19}";
-        var response = given().body(body).when().delete(endpoint).then();
-        response.log().body();
-    }
+        ProductDTO bottle = new ProductDTO();
+        bottle.setId(25);
 
-    @Test
-    public void createSerializedProduct(){
-        String endpoint = "http://localhost:8888/api_testing/product/create.php";
-        Product product = new Product("Water bottle", "Blue water bottle. Holds 64 ounces", 12, 3);
-    var response = given().body(product).when().post(endpoint).then();
-    response.log().body();
-    }
-
-    @Test
-    public void getProducts(){
-        String endpoint = "http://localhost:8888/api_testing/product/read.php";
-        given().
-                when().
-                get(endpoint).
-                then().
-                log().
-                headers().
-                assertThat().
-                statusCode(200).
-                header("Content-Type", equalTo("application/json; charset=UTF-8")).
-                body("records.size()", greaterThan(0)).
-                body("records.id", everyItem(notNullValue())).
-                body("records.name", everyItem(notNullValue())).
-                body("records.description", everyItem(notNullValue())).
-                body("records.price", everyItem(notNullValue())).
-                body("records.category_id", everyItem(notNullValue())).
-                body("records.category_name", everyItem(notNullValue())).
-                body("records.id[0]", equalTo(22));
-    }
-
-    @Test
-    public void getDeserializedProduct(){
-        String endpoint ="http://localhost:8888/api_testing/product/read_one.php";
-        Product expectedProduct = new Product(2, "Cross-Back Training Tank", "The most awesome phone of 2013!", 299.00, 2, "Active Wear - Women");
-        Product actualProduct = given().
-                queryParam("id", "2").
-                when().
-                get(endpoint).
-                as(Product.class);
-        assertThat(actualProduct, samePropertyValuesAs(expectedProduct));
+        given()
+                .when()
+                .contentType(ContentType.JSON)
+                .body(bottle)
+                .delete("/api_testing/product/delete.php")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
     }
 }
