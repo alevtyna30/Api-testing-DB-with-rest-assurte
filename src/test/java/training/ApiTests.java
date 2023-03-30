@@ -10,6 +10,8 @@ import models.ProductDTO;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
 import java.util.List;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -74,22 +76,18 @@ public class ApiTests {
              .statusCode(HttpStatus.SC_CREATED);
     }
     @Test
-    public void getProducts() throws JsonProcessingException {
+    public void getProducts() {
         Response response = given()
                 .when()
                 .get("/api_testing/product/read.php");
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        List<ProductDTO> actualDtoList = objectMapper.readValue(response.getBody().asString(), new TypeReference<List<ProductDTO>>(){});
-        given()
-                .body(actualDtoList)
-                .when()
-                .get("/api_testing/product/read.php")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .header("Content-Type", equalTo("application/json; charset=UTF-8"));
+
+        ProductDTO[] products = response.as(ProductDTO[].class);
+        List<ProductDTO> productDTOList = Arrays.asList(products);
+
+        assertEquals(23, productDTOList.size());
     }
+
         @Test
         public void updateProduct () {
             ProductDTO bottle = new ProductDTO();
