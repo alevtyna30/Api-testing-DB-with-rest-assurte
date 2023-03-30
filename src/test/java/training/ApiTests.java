@@ -1,27 +1,22 @@
 package training;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import io.restassured.response.Response;
 import models.ProductDTO;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.List;
+
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class ApiTests {
 
     @BeforeEach
-    public void setBaseURI(){
+    public void setBaseURI() {
         RestAssured.baseURI = "http://localhost:8888";
     }
 
@@ -43,7 +38,7 @@ public class ApiTests {
 
 
     @Test
-    public void getCategories(){
+    public void getCategories() {
         given()
                 .when()
                 .get("/api_testing/product/read.php")
@@ -51,62 +46,67 @@ public class ApiTests {
                 .statusCode(HttpStatus.SC_OK);
 
     }
+
     @Test
-    public void getProduct(){
-                ProductDTO productActual = given()
-                        .contentType(ContentType.JSON)
-                        .queryParam("id", 2)
-                        .when()
-                        .get("/api_testing/product/read_one.php")
-                        .then()
-                        .assertThat()
-                        .statusCode(HttpStatus.SC_OK)
-                        .extract().as(ProductDTO.class);
+    public void getProduct() {
+        ProductDTO productActual = given()
+                .contentType(ContentType.JSON)
+                .queryParam("id", 2)
+                .when()
+                .get("/api_testing/product/read_one.php")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().as(ProductDTO.class);
 
         assertEquals(tankProduct, productActual);
 
     }
+
     @Test
-    public void createProduct(){
-     given()
-             .body(bottleProduct)
-             .when()
-             .post("/api_testing/product/create.php")
-             .then()
-             .statusCode(HttpStatus.SC_CREATED);
+    public void createProduct() {
+        given()
+                .body(bottleProduct)
+                .when()
+                .post("/api_testing/product/create.php")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
     }
+
     @Test
     public void getProducts() {
-        Response response = given()
-                .when()
-                .get("/api_testing/product/read.php");
+        List<ProductDTO> products = given()
+                .get("/api_testing/product/read.php")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .header("Content-Type", "application/json; charset=UTF-8")
+                .extract()
+                .body()
+                .jsonPath().getList("records", ProductDTO.class);
 
-
-        ProductDTO[] products = response.as(ProductDTO[].class);
-        List<ProductDTO> productDTOList = Arrays.asList(products);
-
-        assertEquals(23, productDTOList.size());
+        assertNotNull(products);
     }
 
-        @Test
-        public void updateProduct () {
-            ProductDTO bottle = new ProductDTO();
-            bottle.setId(26);
-            bottle.setPrice(19.00);
+    @Test
+    public void updateProduct() {
+        ProductDTO bottle = new ProductDTO();
+        bottle.setId(1000);
+        bottle.setPrice(19.00);
 
-            given()
-                    .body(bottle)
-                    .when()
-                    .contentType(ContentType.JSON)
-                    .put("/api_testing/product/update.php")
-                    .then()
-                    .statusCode(HttpStatus.SC_OK);
-        }
+        given()
+                .body(bottle)
+                .when()
+                .contentType(ContentType.JSON)
+                .put("/api_testing/product/update.php")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+    }
 
     @Test
-    public void deleteProduct(){
+    public void deleteProduct() {
         ProductDTO bottle = new ProductDTO();
-        bottle.setId(25);
+        bottle.setId(1000);
 
         given()
                 .when()

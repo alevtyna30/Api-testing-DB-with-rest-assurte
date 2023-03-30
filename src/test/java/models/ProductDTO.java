@@ -4,7 +4,6 @@ package models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
-import java.util.List;
 
 @Data
 @Builder
@@ -20,7 +19,6 @@ public class ProductDTO {
     public int categoryId;
     @JsonProperty("category_name")
     public String categoryName;
-    public List<ProductDTO> products;
 
 
     public ProductDTO(String name, String description, double price, int categoryId) {
@@ -28,6 +26,5 @@ public class ProductDTO {
         setDescription(description);
         setPrice(price);
         setCategoryId(categoryId);
-
     }
 }
