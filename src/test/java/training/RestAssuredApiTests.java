@@ -13,7 +13,7 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-public class ApiTests {
+public class RestAssuredApiTests {
 
     @BeforeEach
     public void setBaseURI() {

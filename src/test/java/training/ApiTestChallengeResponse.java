@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ApiTestChallengeResponse {
 
@@ -29,12 +30,12 @@ public class ApiTestChallengeResponse {
                 when().
                 get(GET_ONE_PRODUCT).
                 then().
-                assertThat().
                 statusCode(HttpStatus.SC_OK).
                 header("Content-Type", equalTo("application/json")).
                 extract().as(ProductDTO.class);
 
-        assertEquals(product, actual);
+        assertEquals(200, 200, "Status code should be 200");
+        assertEquals(product, actual, "The resulting product should be equals the product model");
 
     }
 }

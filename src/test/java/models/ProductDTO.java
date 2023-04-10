@@ -20,11 +20,4 @@ public class ProductDTO {
     @JsonProperty("category_name")
     public String categoryName;
 
-
-    public ProductDTO(String name, String description, double price, int categoryId) {
-        setName(name);
-        setDescription(description);
-        setPrice(price);
-        setCategoryId(categoryId);
-    }
 }
