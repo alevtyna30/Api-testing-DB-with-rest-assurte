@@ -1,14 +1,13 @@
 package training;
 
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import models.ProductDTO;
-import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class ApiTestChallengeResponse {
 
@@ -30,11 +29,15 @@ public class ApiTestChallengeResponse {
                 when().
                 get(GET_ONE_PRODUCT).
                 then().
-                statusCode(HttpStatus.SC_OK).
-                header("Content-Type", equalTo("application/json")).
                 extract().as(ProductDTO.class);
 
-        assertEquals(200, 200, "Status code should be 200");
+        Response response = given().get(GET_ONE_PRODUCT);
+        int statusCode = response.getStatusCode();
+        String header = response.getHeader("Content-Type");
+
+
+        assertEquals("application/json", header);
+        assertEquals(200, statusCode, "Status code should be 200");
         assertEquals(product, actual, "The resulting product should be equals the product model");
 
     }
