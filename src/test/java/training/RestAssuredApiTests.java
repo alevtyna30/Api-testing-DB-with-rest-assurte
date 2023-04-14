@@ -2,6 +2,7 @@ package training;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import models.ProductDTO;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +21,7 @@ public class RestAssuredApiTests {
         RestAssured.baseURI = "http://localhost:8888";
     }
 
-    ProductDTO tankProduct = ProductDTO.builder()
+    ProductDTO expectedProduct = ProductDTO.builder()
             .id(2)
             .name("Cross-Back Training Tank")
             .description("The most awesome phone of 2013!")
@@ -49,17 +50,19 @@ public class RestAssuredApiTests {
 
     @Test
     public void getProduct() {
-        ProductDTO productActual = given()
+        Response response = given()
                 .contentType(ContentType.JSON)
                 .queryParam("id", 2)
                 .when()
-                .get("/api_testing/product/read_one.php")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .extract().as(ProductDTO.class);
+                .get("/api_testing/product/read_one.php");
 
-        assertEquals(tankProduct, productActual);
+        int actualStatusCode = response.getStatusCode();
+        String ActualHeader = response.getHeader("Content-Type");
+        ProductDTO actualProduct = response.getBody().as(ProductDTO.class);
+
+        assertEquals(HttpStatus.SC_OK, actualStatusCode, "Actual status code should be equals 200");
+        assertEquals("application/json", ActualHeader, "Actual content-Type header should be equals - application/json");
+        assertEquals(expectedProduct, actualProduct, "The resulting product should be equals the product model");
 
     }
 
@@ -75,17 +78,15 @@ public class RestAssuredApiTests {
 
     @Test
     public void getProducts() {
-        List<ProductDTO> products = given()
-                .get("/api_testing/product/read.php")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .header("Content-Type", "application/json; charset=UTF-8")
-                .extract()
-                .body()
-                .jsonPath().getList("records", ProductDTO.class);
+        Response response = given().get("/api_testing/product/read.php");
+        int actualStatusCode = response.getStatusCode();
+        String ActualHeader = response.getHeader("Content-Type");
 
-        assertNotNull(products);
+        List<ProductDTO> actualProducts = response.body().jsonPath().getList("records", ProductDTO.class);
+
+        assertEquals(HttpStatus.SC_OK, actualStatusCode, "Actual status code should be equals 200");
+        assertEquals("application/json; charset=UTF-8", ActualHeader, "Actual content-Type header should be equals - application/json");
+        assertNotNull(actualProducts);
     }
 
     @Test
@@ -106,7 +107,7 @@ public class RestAssuredApiTests {
     @Test
     public void deleteProduct() {
         ProductDTO bottle = new ProductDTO();
-        bottle.setId(1000);
+        bottle.setId(1009);
 
         given()
                 .when()

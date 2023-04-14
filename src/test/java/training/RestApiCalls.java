@@ -12,18 +12,28 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.nio.charset.StandardCharsets;
 
 
 public class RestApiCalls {
+    private static final String BASE_URL = "http://localhost:8888";
+    private static final String GET_BY_CATEGORIES = BASE_URL + "/api_testing/product/read.php";
+    private static final String POST_BY_PRODUCT = BASE_URL + "/api_testing/product/create.php";
+    private static final String PUT_BY_PRODUCT = BASE_URL + "/api_testing/product/update.php";
+    private static final String DELETE_BY_PRODUCT = BASE_URL + "/api_testing/product/delete.php";
+    private static final String GET_BY_PRODUCT_ID = BASE_URL + "/api_testing/product/read_one.php";
+
     public static void main(String[] args) throws IOException, InterruptedException, URISyntaxException {
+        deleteProduct();
 
     }
 
     public void getCategories() {
         java.net.http.HttpRequest getCategories = java.net.http.HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8888/api_testing/product/read.php"))
+                .uri(URI.create(GET_BY_CATEGORIES))
                 .GET()
                 .build();
 
@@ -39,19 +49,14 @@ public class RestApiCalls {
         System.out.println(response.body());
     }
 
-    public void createProduct() throws IOException, InterruptedException {
-        ProductDTO bottleProduct = ProductDTO.builder()
-                .name("Water bottle")
-                .description("Blue water bottle. Holds 64 ounces")
-                .price(12.00)
-                .categoryId(3)
-                .build();
+    public void postProduct(ProductDTO product, String endpoint) throws IOException, InterruptedException {
+
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.writeValueAsString(bottleProduct);
-        String jsonRequest = objectMapper.writeValueAsString(bottleProduct);
+        objectMapper.writeValueAsString(product);
+        String jsonRequest = objectMapper.writeValueAsString(product);
 
         java.net.http.HttpRequest postRequest = java.net.http.HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8888/api_testing/product/create.php"))
+                .uri(URI.create(endpoint))
                 .header("Content-Type", "application/json")
                 .POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonRequest))
                 .build();
@@ -62,7 +67,7 @@ public class RestApiCalls {
         System.out.println(postResponse.body());
     }
 
-    public void updateProduct() throws IOException, InterruptedException {
+    public void putProduct() throws IOException, InterruptedException {
         ProductDTO bottle = new ProductDTO();
         bottle.setId(1000);
         bottle.setPrice(80.00);
@@ -71,7 +76,7 @@ public class RestApiCalls {
         String jsonRequest = objectMapper.writeValueAsString(bottle);
 
         java.net.http.HttpRequest putRequest = java.net.http.HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8888/api_testing/product/update.php"))
+                .uri(URI.create(PUT_BY_PRODUCT))
                 .header("Content-Type", "application/json")
                 .PUT(HttpRequest.BodyPublishers.ofString(jsonRequest))
                 .build();
@@ -82,35 +87,44 @@ public class RestApiCalls {
     }
 
 
-    public void deleteProduct() throws IOException, InterruptedException {
-        int idToDelete = 1004;
+    public static void deleteProduct() throws IOException, InterruptedException, URISyntaxException {
+        URIBuilder uriBuilder = new URIBuilder(DELETE_BY_PRODUCT);
+        uriBuilder.setParameter("id", "1011");
+
         java.net.http.HttpRequest deleteRequest = java.net.http.HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8888/api_testing/product/delete.php/" + idToDelete))
+                .uri(uriBuilder.build())
+                .header("Content-Type", "application/json")
                 .DELETE()
                 .build();
 
         HttpClient httpClientTwo = HttpClient.newHttpClient();
         java.net.http.HttpResponse<String> deleteResponse = httpClientTwo.send(deleteRequest, java.net.http.HttpResponse.BodyHandlers.ofString());
         System.out.println(deleteResponse.body());
+        System.out.println(uriBuilder);
     }
 
-    public void getProductById() throws URISyntaxException, IOException {
-        HttpGet httpGetOneProduct = new HttpGet("http://localhost:8888/api_testing/product/read_one.php");
-        URI uri = new URIBuilder(httpGetOneProduct.getURI())
-                .addParameter("id", "18")
-                .build();
-        httpGetOneProduct.setURI(uri);
-        org.apache.http.client.HttpClient client = HttpClientBuilder.create().build();
+    public void getProductById(String endpoint, String param, String value) {
+        try {
+            org.apache.http.client.HttpClient client = HttpClientBuilder.create().build();
+            HttpGet httpGetOneProduct = new HttpGet(endpoint);
+            URI uri = new URIBuilder(httpGetOneProduct.getURI())
+                    .addParameter(param, value)
+                    .build();
+            httpGetOneProduct.setURI(uri);
 
-        HttpResponse response = client.execute(httpGetOneProduct);
+            HttpResponse response = client.execute(httpGetOneProduct);
+            int statusCode = response.getStatusLine().getStatusCode();
+            String responseBody = EntityUtils.toString(response.getEntity());
 
-        int statusCode = response.getStatusLine().getStatusCode();
+            System.out.println(statusCode);
+            System.out.println("response body" + responseBody);
 
-        System.out.println(statusCode);
-        String responseBody = EntityUtils.toString(response.getEntity());
-        System.out.println(responseBody);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 }
+
 
 
 
