@@ -10,7 +10,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @NonNull
-public class ProductDTO {
+@Setter
+@Getter
+public class ProductDto {
     public int id;
     public String name;
     public String description;
@@ -20,7 +22,7 @@ public class ProductDTO {
     @JsonProperty("category_name")
     public String categoryName;
 
-    public ProductDTO(String name, String description, double price, int categoryId) {
+    public ProductDto(String name, String description, double price, int categoryId) {
         this.name = name;
         this.description = description;
         this.price = price;
