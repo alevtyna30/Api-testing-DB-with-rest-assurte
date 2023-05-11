@@ -21,9 +21,9 @@ public class RestAssuredApiHelper {
         return response;
     }
 
-    public Response createProduct(ProductDto product) {
+    public Response createProduct(ProductDto productDto) {
         Response response = given().
-                body(product).
+                body(productDto).
                 contentType(ContentType.JSON).
                 when().
                 post(POST_CREATE_PRODUCT).
