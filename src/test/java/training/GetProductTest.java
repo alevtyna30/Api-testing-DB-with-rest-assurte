@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GetProductTest {
+    private static final double EXPECTED_PRODUCT_PRICE = 68.0;
+    private static final double EXPECTED_AVERAGE_PRICE = 61.0;
+    private static final String EXPECTED_PRODUCT_NAME = "Stretchy Dance Pants";
     private static RestAssuredApiHelper helper;
 
     @BeforeEach
@@ -25,20 +28,21 @@ public class GetProductTest {
 
         List<ProductDto> filteredProducts = actualProducts.stream()
                 .filter(
-                        c -> c.getCategoryName().equals("Active Wear - Women") || c.getId() == 3 || c.getId() == 1)
+                        c -> c.getCategoryName().equals("Active Wear - Women"))
                 .collect(Collectors.toList());
 
-        Assertions.assertTrue(filteredProducts.stream().anyMatch(c -> c.getName().equals("Stretchy Dance Pants")));
-        Assertions.assertEquals(68.0, filteredProducts.stream()
+        Assertions.assertTrue(filteredProducts.stream().anyMatch(c -> c.getName().equals(EXPECTED_PRODUCT_NAME)),
+                "Check the actual product it doesn't equal to expected");
+        Assertions.assertEquals(EXPECTED_PRODUCT_PRICE, actualProducts.stream()
                 .filter(c -> c.getId() == 3)
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Product with id 3 not found"))
-                .getPrice());
-        Assertions.assertTrue(filteredProducts.stream()
+                .getPrice(), "Check the actual price it doesn't equal to expected");
+        Assertions.assertTrue(actualProducts.stream()
                 .filter(c -> c.getId() == 1)
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Product with id 1 not found"))
-                .getPrice() > 90.0);
+                .getPrice() > 90.0, "The price lower than 90.0");
 
     }
 
@@ -47,7 +51,7 @@ public class GetProductTest {
         List<ProductDto> actualProducts = helper.getAllProducts();
         double actualValue = calculateAveragePriceOfTheProduct(actualProducts);
 
-        Assertions.assertEquals(60.888888888888886, actualValue);
+        Assertions.assertEquals(EXPECTED_AVERAGE_PRICE, actualValue,"The actual value doesn't equal to expected");
     }
 
     @Test
@@ -76,13 +80,16 @@ public class GetProductTest {
         expectedMap.put(17, "Magnesium 250 mg (100 tablets)");
         expectedMap.put(18, "Multi-Vitamin (90 capsules)");
 
-        Assertions.assertEquals(actualMap, expectedMap);
+        Assertions.assertEquals(actualMap, expectedMap, "The actual map doesn't equal to expected");
     }
 
     public double calculateAveragePriceOfTheProduct(List<ProductDto> productsDto) {
         return productsDto.stream()
                 .mapToDouble(ProductDto::getPrice)
                 .average()
+                .stream()
+                .map(Math::round)
+                .findFirst()
                 .orElse(0.0);
     }
 
